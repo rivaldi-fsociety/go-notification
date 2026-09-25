@@ -58,7 +58,7 @@ func (h *NotificationHandler) Create(c *fiber.Ctx) error {
 	return helper.Success(
 		c,
 		fiber.StatusCreated,
-		result.Message,
-		req,
+		"notification created",
+		result,
 	)
 }

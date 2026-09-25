@@ -1,8 +1,13 @@
 package main
 
 import (
+	"context"
+	"log"
+
+	"go-notification/internal/database"
 	"go-notification/internal/handler"
 	"go-notification/internal/helper"
+	"go-notification/internal/repository"
 	"go-notification/internal/router"
 	"go-notification/internal/service"
 
@@ -11,13 +16,35 @@ import (
 
 func main() {
 	app := fiber.New()
-
 	validate := helper.NewValidator()
 
-	notificationService := service.NewNotificationService()
-	notificationHandler := handler.NewNotificationHandler(notificationService, validate)
+	// Database
+	mongoClient, err := database.ConnectMongoDB("mongodb://localhost:27017")
+	if err != nil {
+		log.Fatal(err)
+	}
 
+	defer func() {
+		if err := mongoClient.Disconnect(context.Background()); err != nil {
+			log.Printf("failed to disconnect MongoDB: %v", err)
+		}
+	}()
+
+	db := mongoClient.Database("go_notification")
+
+	// Dependencies
+	notificationRepository := repository.NewNotificationRepository(db)
+	notificationService := service.NewNotificationService(notificationRepository)
+	notificationHandler := handler.NewNotificationHandler(
+		notificationService,
+		validate,
+	)
+
+	// Router
 	router.Setup(app, notificationHandler)
 
-	app.Listen(":8000")
+	// Server
+	if err := app.Listen(":8000"); err != nil {
+		log.Fatal(err)
+	}
 }
