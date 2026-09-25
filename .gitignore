@@ -1,0 +1,4 @@
+__debug*
+go.mod
+go.sum
+.vscode/
