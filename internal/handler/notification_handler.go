@@ -41,7 +41,7 @@ func (h *NotificationHandler) Create(c *fiber.Ctx) error {
 			c,
 			fiber.StatusBadRequest,
 			"validation failed",
-			err.Error(),
+			helper.ValidationErrors(err),
 		)
 	}
 
