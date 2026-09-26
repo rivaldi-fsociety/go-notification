@@ -17,4 +17,5 @@ func Setup(
 	notifications := v1.Group("/notifications")
 	notifications.Post("/", notificationHandler.Create)
 	notifications.Get("/", notificationHandler.GetAll)
+	notifications.Get("/:id", notificationHandler.Get)
 }

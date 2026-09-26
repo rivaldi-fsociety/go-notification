@@ -14,4 +14,5 @@ type GetNotificationsParams struct {
 type NotificationRepository interface {
 	Create(ctx context.Context, notification *model.Notification) error
 	GetAll(ctx context.Context, params GetNotificationsParams) ([]model.Notification, int64, error)
+	Get(ctx context.Context, id string) (*model.Notification, error)
 }

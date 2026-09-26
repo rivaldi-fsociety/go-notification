@@ -83,3 +83,25 @@ func (s *notificationService) GetAll(
 
 	return result, total, nil
 }
+
+func (s *notificationService) Get(
+	id string,
+) (*dto.NotificationResponse, error) {
+
+	notification, err := s.repository.Get(
+		context.Background(),
+		id,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &dto.NotificationResponse{
+		ID:        notification.ID.Hex(),
+		UserID:    notification.UserID,
+		Title:     notification.Title,
+		Message:   notification.Message,
+		CreatedAt: notification.CreatedAt,
+	}, nil
+}

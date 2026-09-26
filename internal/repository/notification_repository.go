@@ -89,3 +89,27 @@ func (r *notificationRepository) GetAll(
 
 	return notifications, total, nil
 }
+
+func (r *notificationRepository) Get(
+	ctx context.Context,
+	id string,
+) (*model.Notification, error) {
+	objectID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, fmt.Errorf("invalid notification ID: %v", err)
+	}
+
+	filter := bson.M{"_id": objectID}
+
+	var notification model.Notification
+
+	err = r.collection.FindOne(ctx, filter).Decode(&notification)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("notification not found")
+		}
+		return nil, err
+	}
+
+	return &notification, nil
+}

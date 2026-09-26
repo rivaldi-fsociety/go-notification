@@ -103,3 +103,33 @@ func (h *NotificationHandler) GetAll(c *fiber.Ctx) error {
 		pagination,
 	)
 }
+
+func (h *NotificationHandler) Get(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	result, err := h.service.Get(id)
+	if err != nil {
+		return helper.Error(
+			c,
+			fiber.StatusInternalServerError,
+			"failed to get notification",
+			nil,
+		)
+	}
+
+	if result == nil {
+		return helper.Error(
+			c,
+			fiber.StatusNotFound,
+			"notification not found",
+			nil,
+		)
+	}
+
+	return helper.Success(
+		c,
+		fiber.StatusOK,
+		"notification retrieved",
+		result,
+	)
+}
