@@ -9,19 +9,19 @@ import (
 	"go-notification/internal/repository"
 )
 
-type NotificationService struct {
-	repository *repository.NotificationRepository
+type notificationService struct {
+	repository repository.NotificationRepository
 }
 
 func NewNotificationService(
-	repository *repository.NotificationRepository,
-) *NotificationService {
-	return &NotificationService{
+	repository repository.NotificationRepository,
+) NotificationService {
+	return &notificationService{
 		repository: repository,
 	}
 }
 
-func (s *NotificationService) Create(
+func (s *notificationService) Create(
 	req dto.CreateNotificationRequest,
 ) (*dto.CreateNotificationResponse, error) {
 

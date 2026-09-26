@@ -9,17 +9,17 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-type NotificationRepository struct {
+type notificationRepository struct {
 	collection *mongo.Collection
 }
 
-func NewNotificationRepository(db *mongo.Database) *NotificationRepository {
-	return &NotificationRepository{
+func NewNotificationRepository(db *mongo.Database) NotificationRepository {
+	return &notificationRepository{
 		collection: db.Collection("notifications"),
 	}
 }
 
-func (r *NotificationRepository) Create(
+func (r *notificationRepository) Create(
 	ctx context.Context,
 	notification *model.Notification,
 ) error {

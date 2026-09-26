@@ -10,12 +10,12 @@ import (
 )
 
 type NotificationHandler struct {
-	service   *service.NotificationService
+	service   service.NotificationService
 	validator *validator.Validate
 }
 
 func NewNotificationHandler(
-	service *service.NotificationService,
+	service service.NotificationService,
 	validator *validator.Validate,
 ) *NotificationHandler {
 	return &NotificationHandler{
