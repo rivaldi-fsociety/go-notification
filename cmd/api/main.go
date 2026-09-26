@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 
+	"go-notification/internal/config"
 	"go-notification/internal/database"
 	"go-notification/internal/handler"
 	"go-notification/internal/helper"
@@ -15,11 +16,18 @@ import (
 )
 
 func main() {
+	// Config
+	cfg, err := config.Load()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// App
 	app := fiber.New()
 	validate := helper.NewValidator()
 
 	// Database
-	mongoClient, err := database.ConnectMongoDB("mongodb://localhost:27017")
+	mongoClient, err := database.ConnectMongoDB(cfg.MongoURI)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -30,29 +38,48 @@ func main() {
 		}
 	}()
 
-	db := mongoClient.Database("go_notification")
+	db := mongoClient.Database(cfg.MongoDatabase)
 
-	// Dependencies
+	// Repositories
 	notificationRepository := repository.NewNotificationRepository(db)
-	notificationService := service.NewNotificationService(notificationRepository)
+	userRepository := repository.NewUserRepository(db)
+
+	// Indexes
+	if err := userRepository.CreateIndexes(context.Background()); err != nil {
+		log.Fatal(err)
+	}
+
+	// Services
+	notificationService := service.NewNotificationService(
+		notificationRepository,
+	)
+
+	userService := service.NewUserService(
+		userRepository,
+		cfg.JWTSecret,
+		cfg.JWTExpiresIn,
+	)
+
+	// Handlers
 	notificationHandler := handler.NewNotificationHandler(
 		notificationService,
 		validate,
 	)
 
-	userRepository := repository.NewUserRepository(db)
-	userService := service.NewUserService(userRepository)
-	userHandler := handler.NewUserHandler(userService, validate)
-
-	if err := userRepository.CreateIndexes(context.Background()); err != nil {
-		log.Fatal(err)
-	}
+	userHandler := handler.NewUserHandler(
+		userService,
+		validate,
+	)
 
 	// Router
-	router.Setup(app, notificationHandler, userHandler)
+	router.Setup(
+		app,
+		notificationHandler,
+		userHandler,
+	)
 
 	// Server
-	if err := app.Listen(":8000"); err != nil {
+	if err := app.Listen(":" + cfg.AppPort); err != nil {
 		log.Fatal(err)
 	}
 }

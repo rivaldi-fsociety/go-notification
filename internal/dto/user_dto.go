@@ -23,3 +23,13 @@ type GetUserQuery struct {
 	Limit int    `query:"limit"`
 	Terms string `query:"terms"`
 }
+
+type LoginUserRequest struct {
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required"`
+}
+
+type LoginResponse struct {
+	Token string       `json:"token"`
+	User  UserResponse `json:"user"`
+}

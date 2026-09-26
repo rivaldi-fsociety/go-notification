@@ -12,4 +12,5 @@ func SetupAuthRoutes(
 ) {
 	auth := api.Group("/auth")
 	auth.Post("/register", userHandler.Register)
+	auth.Post("/login", userHandler.Login)
 }
