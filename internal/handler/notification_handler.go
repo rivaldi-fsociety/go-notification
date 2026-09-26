@@ -133,3 +133,35 @@ func (h *NotificationHandler) Get(c *fiber.Ctx) error {
 		result,
 	)
 }
+
+func (h *NotificationHandler) Update(c *fiber.Ctx) error {
+	var req dto.CreateNotificationRequest
+
+	if err := c.BodyParser(&req); err != nil {
+		return helper.Error(
+			c,
+			fiber.StatusBadRequest,
+			"invalid request body",
+			nil,
+		)
+	}
+
+	id := c.Params("id")
+
+	result, err := h.service.Update(req, id)
+	if err != nil {
+		return helper.Error(
+			c,
+			fiber.StatusInternalServerError,
+			"failed to update notification",
+			nil,
+		)
+	}
+
+	return helper.Success(
+		c,
+		fiber.StatusOK,
+		"notification updated",
+		result,
+	)
+}

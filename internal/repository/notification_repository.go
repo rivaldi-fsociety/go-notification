@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"go-notification/internal/model"
 
@@ -112,4 +113,46 @@ func (r *notificationRepository) Get(
 	}
 
 	return &notification, nil
+}
+
+func (r *notificationRepository) Update(
+	ctx context.Context,
+	id string,
+	notification *model.Notification,
+) (*model.Notification, error) {
+
+	objectID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, fmt.Errorf("invalid notification id")
+	}
+
+	filter := bson.M{
+		"_id": objectID,
+	}
+
+	update := bson.M{
+		"$set": bson.M{
+			"title":   notification.Title,
+			"message": notification.Message,
+		},
+	}
+
+	options := options.FindOneAndUpdate().
+		SetReturnDocument(options.After)
+
+	var updatedNotification model.Notification
+
+	err = r.collection.
+		FindOneAndUpdate(ctx, filter, update, options).
+		Decode(&updatedNotification)
+
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, fmt.Errorf("notification not found")
+		}
+
+		return nil, err
+	}
+
+	return &updatedNotification, nil
 }

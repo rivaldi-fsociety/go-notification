@@ -105,3 +105,34 @@ func (s *notificationService) Get(
 		CreatedAt: notification.CreatedAt,
 	}, nil
 }
+
+func (s *notificationService) Update(
+	req dto.CreateNotificationRequest,
+	id string,
+) (*dto.NotificationResponse, error) {
+
+	notification := &model.Notification{
+		UserID:    req.UserID,
+		Title:     req.Title,
+		Message:   req.Message,
+		CreatedAt: time.Now(),
+	}
+
+	updatedNotification, err := s.repository.Update(
+		context.Background(),
+		id,
+		notification,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &dto.NotificationResponse{
+		ID:        updatedNotification.ID.Hex(),
+		UserID:    updatedNotification.UserID,
+		Title:     updatedNotification.Title,
+		Message:   updatedNotification.Message,
+		CreatedAt: updatedNotification.CreatedAt,
+	}, nil
+}
