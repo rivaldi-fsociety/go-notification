@@ -156,3 +156,27 @@ func (r *notificationRepository) Update(
 
 	return &updatedNotification, nil
 }
+
+func (r *notificationRepository) Delete(
+	ctx context.Context,
+	id string,
+) error {
+
+	objectID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return fmt.Errorf("invalid notification id")
+	}
+
+	result, err := r.collection.DeleteOne(ctx, bson.M{
+		"_id": objectID,
+	})
+	if err != nil {
+		return err
+	}
+
+	if result.DeletedCount == 0 {
+		return fmt.Errorf("notification not found")
+	}
+
+	return nil
+}

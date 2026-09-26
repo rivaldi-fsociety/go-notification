@@ -136,3 +136,18 @@ func (s *notificationService) Update(
 		CreatedAt: updatedNotification.CreatedAt,
 	}, nil
 }
+
+func (s *notificationService) Delete(
+	id string,
+) error {
+	err := s.repository.Delete(
+		context.Background(),
+		id,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

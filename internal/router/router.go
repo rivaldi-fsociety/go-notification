@@ -19,4 +19,5 @@ func Setup(
 	notifications.Get("/", notificationHandler.GetAll)
 	notifications.Get("/:id", notificationHandler.Get)
 	notifications.Put("/:id", notificationHandler.Update)
+	notifications.Delete("/:id", notificationHandler.Delete)
 }

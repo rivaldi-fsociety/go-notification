@@ -165,3 +165,24 @@ func (h *NotificationHandler) Update(c *fiber.Ctx) error {
 		result,
 	)
 }
+
+func (h *NotificationHandler) Delete(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	err := h.service.Delete(id)
+	if err != nil {
+		return helper.Error(
+			c,
+			fiber.StatusInternalServerError,
+			err.Error(),
+			nil,
+		)
+	}
+
+	return helper.Success(
+		c,
+		fiber.StatusOK,
+		"notification deleted",
+		nil,
+	)
+}
