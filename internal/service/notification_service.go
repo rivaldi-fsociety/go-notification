@@ -88,7 +88,7 @@ func (s *notificationService) Get(
 	id string,
 ) (*dto.NotificationResponse, error) {
 
-	notification, err := s.repository.Get(
+	notification, err := s.repository.GetById(
 		context.Background(),
 		id,
 	)
@@ -115,7 +115,7 @@ func (s *notificationService) Update(
 		UserID:    req.UserID,
 		Title:     req.Title,
 		Message:   req.Message,
-		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
 
 	updatedNotification, err := s.repository.Update(
@@ -134,6 +134,7 @@ func (s *notificationService) Update(
 		Title:     updatedNotification.Title,
 		Message:   updatedNotification.Message,
 		CreatedAt: updatedNotification.CreatedAt,
+		UpdatedAt: updatedNotification.UpdatedAt,
 	}, nil
 }
 

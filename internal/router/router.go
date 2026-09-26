@@ -9,15 +9,13 @@ import (
 func Setup(
 	app *fiber.App,
 	notificationHandler *handler.NotificationHandler,
+	userHandler *handler.UserHandler,
 ) {
 	api := app.Group("/api")
 	v1 := api.Group("/v1")
 
 	v1.Get("/health", handler.HealthCheck)
-	notifications := v1.Group("/notifications")
-	notifications.Post("/", notificationHandler.Create)
-	notifications.Get("/", notificationHandler.GetAll)
-	notifications.Get("/:id", notificationHandler.Get)
-	notifications.Put("/:id", notificationHandler.Update)
-	notifications.Delete("/:id", notificationHandler.Delete)
+
+	SetupNotificationRouter(v1, notificationHandler)
+	SetupAuthRoutes(v1, userHandler)
 }

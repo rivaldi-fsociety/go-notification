@@ -91,7 +91,7 @@ func (r *notificationRepository) GetAll(
 	return notifications, total, nil
 }
 
-func (r *notificationRepository) Get(
+func (r *notificationRepository) GetById(
 	ctx context.Context,
 	id string,
 ) (*model.Notification, error) {
@@ -132,8 +132,9 @@ func (r *notificationRepository) Update(
 
 	update := bson.M{
 		"$set": bson.M{
-			"title":   notification.Title,
-			"message": notification.Message,
+			"title":      notification.Title,
+			"message":    notification.Message,
+			"updated_at": notification.UpdatedAt,
 		},
 	}
 

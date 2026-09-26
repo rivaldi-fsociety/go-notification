@@ -40,8 +40,16 @@ func main() {
 		validate,
 	)
 
+	userRepository := repository.NewUserRepository(db)
+	userService := service.NewUserService(userRepository)
+	userHandler := handler.NewUserHandler(userService, validate)
+
+	if err := userRepository.CreateIndexes(context.Background()); err != nil {
+		log.Fatal(err)
+	}
+
 	// Router
-	router.Setup(app, notificationHandler)
+	router.Setup(app, notificationHandler, userHandler)
 
 	// Server
 	if err := app.Listen(":8000"); err != nil {
