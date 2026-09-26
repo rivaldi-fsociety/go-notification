@@ -16,4 +16,5 @@ func Setup(
 	v1.Get("/health", handler.HealthCheck)
 	notifications := v1.Group("/notifications")
 	notifications.Post("/", notificationHandler.Create)
+	notifications.Get("/", notificationHandler.GetAll)
 }

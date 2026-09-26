@@ -23,7 +23,7 @@ func NewNotificationService(
 
 func (s *notificationService) Create(
 	req dto.CreateNotificationRequest,
-) (*dto.CreateNotificationResponse, error) {
+) (*dto.NotificationResponse, error) {
 
 	notification := &model.Notification{
 		UserID:    req.UserID,
@@ -41,11 +41,45 @@ func (s *notificationService) Create(
 		return nil, err
 	}
 
-	return &dto.CreateNotificationResponse{
+	return &dto.NotificationResponse{
 		ID:        notification.ID.Hex(),
 		UserID:    notification.UserID,
 		Title:     notification.Title,
 		Message:   notification.Message,
 		CreatedAt: notification.CreatedAt,
 	}, nil
+}
+
+func (s *notificationService) GetAll(
+	query dto.GetNotificationsQuery,
+) ([]dto.NotificationResponse, int64, error) {
+
+	skip := (query.Page - 1) * query.Limit
+
+	notifications, total, err := s.repository.GetAll(
+		context.Background(),
+		repository.GetNotificationsParams{
+			Limit: query.Limit,
+			Skip:  skip,
+			Terms: query.Terms,
+		},
+	)
+
+	if err != nil {
+		return nil, 0, err
+	}
+
+	result := make([]dto.NotificationResponse, 0, len(notifications))
+
+	for _, notification := range notifications {
+		result = append(result, dto.NotificationResponse{
+			ID:        notification.ID.Hex(),
+			UserID:    notification.UserID,
+			Title:     notification.Title,
+			Message:   notification.Message,
+			CreatedAt: notification.CreatedAt,
+		})
+	}
+
+	return result, total, nil
 }

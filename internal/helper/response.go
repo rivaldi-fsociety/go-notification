@@ -7,6 +7,14 @@ type Response struct {
 	Message string `json:"message"`
 	Data    any    `json:"data,omitempty"`
 	Errors  any    `json:"errors,omitempty"`
+	Meta    any    `json:"meta,omitempty"`
+}
+
+type Pagination struct {
+	Page       int   `json:"page"`
+	Limit      int   `json:"limit"`
+	Total      int64 `json:"total"`
+	TotalPages int   `json:"total_pages"`
 }
 
 func Success(
@@ -19,6 +27,21 @@ func Success(
 		Success: true,
 		Message: message,
 		Data:    data,
+	})
+}
+
+func SuccessWithMeta(
+	c *fiber.Ctx,
+	status int,
+	message string,
+	data any,
+	meta any,
+) error {
+	return c.Status(status).JSON(Response{
+		Success: true,
+		Message: message,
+		Data:    data,
+		Meta:    meta,
 	})
 }
 

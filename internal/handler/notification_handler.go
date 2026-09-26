@@ -62,3 +62,44 @@ func (h *NotificationHandler) Create(c *fiber.Ctx) error {
 		result,
 	)
 }
+
+func (h *NotificationHandler) GetAll(c *fiber.Ctx) error {
+	query := dto.GetNotificationsQuery{
+		Page:  1,
+		Limit: 10,
+	}
+
+	if err := c.QueryParser(&query); err != nil {
+		return helper.Error(
+			c,
+			fiber.StatusBadRequest,
+			"invalid query parameters",
+			nil,
+		)
+	}
+
+	notifications, total, err := h.service.GetAll(query)
+	if err != nil {
+		return helper.Error(
+			c,
+			fiber.StatusInternalServerError,
+			"failed to get notifications",
+			nil,
+		)
+	}
+
+	pagination := helper.Pagination{
+		Page:       query.Page,
+		Limit:      query.Limit,
+		Total:      total,
+		TotalPages: int((total + int64(query.Limit) - 1) / int64(query.Limit)),
+	}
+
+	return helper.SuccessWithMeta(
+		c,
+		fiber.StatusOK,
+		"notifications retrieved",
+		notifications,
+		pagination,
+	)
+}

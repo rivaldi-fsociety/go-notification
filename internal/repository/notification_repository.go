@@ -7,6 +7,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type notificationRepository struct {
@@ -36,4 +37,55 @@ func (r *notificationRepository) Create(
 	notification.ID = id
 
 	return nil
+}
+
+func (r *notificationRepository) GetAll(
+	ctx context.Context,
+	params GetNotificationsParams,
+) ([]model.Notification, int64, error) {
+
+	filter := bson.M{}
+
+	if params.Terms != "" {
+		filter = bson.M{
+			"$or": bson.A{
+				bson.M{
+					"title": bson.M{
+						"$regex":   params.Terms,
+						"$options": "i",
+					},
+				},
+				bson.M{
+					"message": bson.M{
+						"$regex":   params.Terms,
+						"$options": "i",
+					},
+				},
+			},
+		}
+	}
+
+	total, err := r.collection.CountDocuments(ctx, filter)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	options := options.Find().
+		SetSkip(int64(params.Skip)).
+		SetLimit(int64(params.Limit)).
+		SetSort(bson.D{{Key: "created_at", Value: -1}})
+
+	cursor, err := r.collection.Find(ctx, filter, options)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer cursor.Close(ctx)
+
+	var notifications []model.Notification
+
+	if err := cursor.All(ctx, &notifications); err != nil {
+		return nil, 0, err
+	}
+
+	return notifications, total, nil
 }

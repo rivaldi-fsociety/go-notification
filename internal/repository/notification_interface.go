@@ -5,6 +5,13 @@ import (
 	"go-notification/internal/model"
 )
 
+type GetNotificationsParams struct {
+	Limit int
+	Skip  int
+	Terms string
+}
+
 type NotificationRepository interface {
 	Create(ctx context.Context, notification *model.Notification) error
+	GetAll(ctx context.Context, params GetNotificationsParams) ([]model.Notification, int64, error)
 }
