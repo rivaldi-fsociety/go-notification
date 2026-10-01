@@ -7,10 +7,15 @@ import (
 )
 
 func SetupNotificationRouter(
-	api fiber.Router,
+	router fiber.Router,
 	notificationHandler *handler.NotificationHandler,
+	authMiddleware fiber.Handler,
 ) {
-	notifications := api.Group("/notifications")
+	notifications := router.Group(
+		"/notifications",
+		authMiddleware,
+	)
+
 	notifications.Post("/", notificationHandler.Create)
 	notifications.Get("/", notificationHandler.GetAll)
 	notifications.Get("/:id", notificationHandler.Get)

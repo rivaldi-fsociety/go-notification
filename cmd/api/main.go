@@ -76,6 +76,7 @@ func main() {
 		app,
 		notificationHandler,
 		userHandler,
+		cfg.JWTSecret,
 	)
 
 	// Server
