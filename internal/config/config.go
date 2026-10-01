@@ -9,11 +9,12 @@ import (
 )
 
 type Config struct {
-	AppPort       string
-	MongoURI      string
-	MongoDatabase string
-	JWTSecret     string
-	JWTExpiresIn  time.Duration
+	AppPort        string
+	MongoURI       string
+	MongoDatabase  string
+	JWTSecret      string
+	JWTExpiresIn   time.Duration
+	RequestTimeout time.Duration
 }
 
 func Load() (*Config, error) {
@@ -26,12 +27,23 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("invalid JWT_EXPIRES_IN: %w", err)
 	}
 
+	requestTimeout, err := time.ParseDuration(
+		getEnv("REQUEST_TIMEOUT", "5s"),
+	)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"invalid REQUEST_TIMEOUT: %w",
+			err,
+		)
+	}
+
 	config := &Config{
-		AppPort:       getEnv("APP_PORT", "8000"),
-		MongoURI:      getEnv("MONGO_URI", "mongodb://localhost:27017"),
-		MongoDatabase: getEnv("MONGO_DATABASE", "go_notification"),
-		JWTSecret:     os.Getenv("JWT_SECRET"),
-		JWTExpiresIn:  jwtExpiresIn,
+		AppPort:        getEnv("APP_PORT", "8000"),
+		MongoURI:       getEnv("MONGO_URI", "mongodb://localhost:27017"),
+		MongoDatabase:  getEnv("MONGO_DATABASE", "go_notification"),
+		JWTSecret:      os.Getenv("JWT_SECRET"),
+		JWTExpiresIn:   jwtExpiresIn,
+		RequestTimeout: requestTimeout,
 	}
 
 	if config.JWTSecret == "" {

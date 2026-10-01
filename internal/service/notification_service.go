@@ -22,6 +22,7 @@ func NewNotificationService(
 }
 
 func (s *notificationService) Create(
+	ctx context.Context,
 	req dto.CreateNotificationRequest,
 	userID string,
 ) (*dto.NotificationResponse, error) {
@@ -34,7 +35,7 @@ func (s *notificationService) Create(
 	}
 
 	err := s.repository.Create(
-		context.Background(),
+		ctx,
 		notification,
 	)
 
@@ -52,6 +53,7 @@ func (s *notificationService) Create(
 }
 
 func (s *notificationService) GetAll(
+	ctx context.Context,
 	query dto.GetNotificationsQuery,
 	userID string,
 ) ([]dto.NotificationResponse, int64, error) {
@@ -59,7 +61,7 @@ func (s *notificationService) GetAll(
 	skip := (query.Page - 1) * query.Limit
 
 	notifications, total, err := s.repository.GetAll(
-		context.Background(),
+		ctx,
 		repository.GetNotificationsParams{
 			Limit:  query.Limit,
 			Skip:   skip,
@@ -88,12 +90,13 @@ func (s *notificationService) GetAll(
 }
 
 func (s *notificationService) Get(
+	ctx context.Context,
 	id string,
 	userID string,
 ) (*dto.NotificationResponse, error) {
 
 	notification, err := s.repository.GetById(
-		context.Background(),
+		ctx,
 		id,
 		userID,
 	)
@@ -112,6 +115,7 @@ func (s *notificationService) Get(
 }
 
 func (s *notificationService) Update(
+	ctx context.Context,
 	req dto.CreateNotificationRequest,
 	id string,
 	userID string,
@@ -125,7 +129,7 @@ func (s *notificationService) Update(
 	}
 
 	updatedNotification, err := s.repository.Update(
-		context.Background(),
+		ctx,
 		id,
 		notification,
 		userID,
@@ -146,11 +150,12 @@ func (s *notificationService) Update(
 }
 
 func (s *notificationService) Delete(
+	ctx context.Context,
 	id string,
 	userID string,
 ) error {
 	err := s.repository.Delete(
-		context.Background(),
+		ctx,
 		id,
 		userID,
 	)

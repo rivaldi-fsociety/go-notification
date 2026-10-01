@@ -10,10 +10,12 @@ func SetupNotificationRouter(
 	router fiber.Router,
 	notificationHandler *handler.NotificationHandler,
 	authMiddleware fiber.Handler,
+	timeoutMiddleware fiber.Handler,
 ) {
 	notifications := router.Group(
 		"/notifications",
 		authMiddleware,
+		timeoutMiddleware,
 	)
 
 	notifications.Post("/", notificationHandler.Create)

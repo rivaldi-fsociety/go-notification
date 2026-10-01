@@ -27,6 +27,7 @@ func NewNotificationHandler(
 }
 
 func (h *NotificationHandler) Create(c *fiber.Ctx) error {
+	ctx := c.UserContext()
 	userID, ok := c.Locals("user_id").(string)
 	if !ok || userID == "" {
 		return helper.Error(
@@ -58,6 +59,7 @@ func (h *NotificationHandler) Create(c *fiber.Ctx) error {
 	}
 
 	notification, err := h.service.Create(
+		ctx,
 		req,
 		userID,
 	)
@@ -79,6 +81,7 @@ func (h *NotificationHandler) Create(c *fiber.Ctx) error {
 }
 
 func (h *NotificationHandler) GetAll(c *fiber.Ctx) error {
+	ctx := c.UserContext()
 	userID, ok := c.Locals("user_id").(string)
 	if !ok || userID == "" {
 		return helper.Error(
@@ -103,7 +106,7 @@ func (h *NotificationHandler) GetAll(c *fiber.Ctx) error {
 		)
 	}
 
-	notifications, total, err := h.service.GetAll(query, userID)
+	notifications, total, err := h.service.GetAll(ctx, query, userID)
 	if err != nil {
 		return helper.Error(
 			c,
@@ -130,6 +133,7 @@ func (h *NotificationHandler) GetAll(c *fiber.Ctx) error {
 }
 
 func (h *NotificationHandler) Get(c *fiber.Ctx) error {
+	ctx := c.UserContext()
 	userID, ok := c.Locals("user_id").(string)
 	if !ok || userID == "" {
 		return helper.Error(
@@ -141,7 +145,7 @@ func (h *NotificationHandler) Get(c *fiber.Ctx) error {
 	}
 	id := c.Params("id")
 
-	result, err := h.service.Get(id, userID)
+	result, err := h.service.Get(ctx, id, userID)
 	if err != nil {
 		return helper.Error(
 			c,
@@ -169,6 +173,7 @@ func (h *NotificationHandler) Get(c *fiber.Ctx) error {
 }
 
 func (h *NotificationHandler) Update(c *fiber.Ctx) error {
+	ctx := c.UserContext()
 	userID, ok := c.Locals("user_id").(string)
 	if !ok || userID == "" {
 		return helper.Error(
@@ -193,6 +198,7 @@ func (h *NotificationHandler) Update(c *fiber.Ctx) error {
 	id := c.Params("id")
 
 	result, err := h.service.Update(
+		ctx,
 		req,
 		id,
 		userID,
@@ -215,6 +221,7 @@ func (h *NotificationHandler) Update(c *fiber.Ctx) error {
 }
 
 func (h *NotificationHandler) Delete(c *fiber.Ctx) error {
+	ctx := c.UserContext()
 	userID, ok := c.Locals("user_id").(string)
 	if !ok || userID == "" {
 		return helper.Error(
@@ -227,7 +234,7 @@ func (h *NotificationHandler) Delete(c *fiber.Ctx) error {
 
 	id := c.Params("id")
 
-	err := h.service.Delete(id, userID)
+	err := h.service.Delete(ctx, id, userID)
 	if err != nil {
 		return helper.Error(
 			c,

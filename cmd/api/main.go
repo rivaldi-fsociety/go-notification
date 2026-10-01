@@ -77,6 +77,7 @@ func main() {
 		notificationHandler,
 		userHandler,
 		cfg.JWTSecret,
+		cfg.RequestTimeout,
 	)
 
 	// Server
