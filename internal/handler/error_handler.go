@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"log"
 	"net/http"
 
 	"go-notification/internal/apperror"
@@ -45,6 +46,12 @@ func handleError(c *fiber.Ctx, err error) error {
 		)
 
 	default:
+		log.Printf(
+			"request_id=%v unexpected_error=%v",
+			c.Locals("requestid"),
+			err,
+		)
+
 		return helper.Error(
 			c,
 			http.StatusInternalServerError,

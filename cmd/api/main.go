@@ -12,11 +12,13 @@ import (
 	"go-notification/internal/database"
 	"go-notification/internal/handler"
 	"go-notification/internal/helper"
+	"go-notification/internal/middleware"
 	"go-notification/internal/repository"
 	"go-notification/internal/router"
 	"go-notification/internal/service"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/requestid"
 )
 
 func main() {
@@ -28,6 +30,8 @@ func main() {
 
 	// App
 	app := fiber.New()
+	app.Use(requestid.New())
+	app.Use(middleware.LoggerMiddleware())
 	validate := helper.NewValidator()
 
 	// Database
