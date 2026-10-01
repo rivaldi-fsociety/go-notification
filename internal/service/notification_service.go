@@ -23,10 +23,11 @@ func NewNotificationService(
 
 func (s *notificationService) Create(
 	req dto.CreateNotificationRequest,
+	userID string,
 ) (*dto.NotificationResponse, error) {
 
 	notification := &model.Notification{
-		UserID:    req.UserID,
+		UserID:    userID,
 		Title:     req.Title,
 		Message:   req.Message,
 		CreatedAt: time.Now(),
@@ -52,6 +53,7 @@ func (s *notificationService) Create(
 
 func (s *notificationService) GetAll(
 	query dto.GetNotificationsQuery,
+	userID string,
 ) ([]dto.NotificationResponse, int64, error) {
 
 	skip := (query.Page - 1) * query.Limit
@@ -59,9 +61,10 @@ func (s *notificationService) GetAll(
 	notifications, total, err := s.repository.GetAll(
 		context.Background(),
 		repository.GetNotificationsParams{
-			Limit: query.Limit,
-			Skip:  skip,
-			Terms: query.Terms,
+			Limit:  query.Limit,
+			Skip:   skip,
+			Terms:  query.Terms,
+			UserID: userID,
 		},
 	)
 
@@ -86,11 +89,13 @@ func (s *notificationService) GetAll(
 
 func (s *notificationService) Get(
 	id string,
+	userID string,
 ) (*dto.NotificationResponse, error) {
 
 	notification, err := s.repository.GetById(
 		context.Background(),
 		id,
+		userID,
 	)
 
 	if err != nil {
@@ -109,10 +114,11 @@ func (s *notificationService) Get(
 func (s *notificationService) Update(
 	req dto.CreateNotificationRequest,
 	id string,
+	userID string,
 ) (*dto.NotificationResponse, error) {
 
 	notification := &model.Notification{
-		UserID:    req.UserID,
+		UserID:    userID,
 		Title:     req.Title,
 		Message:   req.Message,
 		UpdatedAt: time.Now(),
@@ -122,6 +128,7 @@ func (s *notificationService) Update(
 		context.Background(),
 		id,
 		notification,
+		userID,
 	)
 
 	if err != nil {
@@ -140,10 +147,12 @@ func (s *notificationService) Update(
 
 func (s *notificationService) Delete(
 	id string,
+	userID string,
 ) error {
 	err := s.repository.Delete(
 		context.Background(),
 		id,
+		userID,
 	)
 
 	if err != nil {

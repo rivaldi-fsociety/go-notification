@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"net/http"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 
@@ -25,13 +27,23 @@ func NewNotificationHandler(
 }
 
 func (h *NotificationHandler) Create(c *fiber.Ctx) error {
+	userID, ok := c.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return helper.Error(
+			c,
+			http.StatusUnauthorized,
+			"Unauthorized",
+			nil,
+		)
+	}
+
 	var req dto.CreateNotificationRequest
 
 	if err := c.BodyParser(&req); err != nil {
 		return helper.Error(
 			c,
-			fiber.StatusBadRequest,
-			"invalid request body",
+			http.StatusBadRequest,
+			"Invalid request body",
 			nil,
 		)
 	}
@@ -39,31 +51,44 @@ func (h *NotificationHandler) Create(c *fiber.Ctx) error {
 	if err := h.validator.Struct(req); err != nil {
 		return helper.Error(
 			c,
-			fiber.StatusBadRequest,
-			"validation failed",
+			http.StatusBadRequest,
+			"Validation failed",
 			helper.ValidationErrors(err),
 		)
 	}
 
-	result, err := h.service.Create(req)
+	notification, err := h.service.Create(
+		req,
+		userID,
+	)
 	if err != nil {
 		return helper.Error(
 			c,
-			fiber.StatusInternalServerError,
-			"failed to create notification",
+			http.StatusInternalServerError,
+			err.Error(),
 			nil,
 		)
 	}
 
 	return helper.Success(
 		c,
-		fiber.StatusCreated,
-		"notification created",
-		result,
+		http.StatusCreated,
+		"Notification created successfully",
+		notification,
 	)
 }
 
 func (h *NotificationHandler) GetAll(c *fiber.Ctx) error {
+	userID, ok := c.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return helper.Error(
+			c,
+			http.StatusUnauthorized,
+			"Unauthorized",
+			nil,
+		)
+	}
+
 	query := dto.GetNotificationsQuery{
 		Page:  1,
 		Limit: 10,
@@ -78,7 +103,7 @@ func (h *NotificationHandler) GetAll(c *fiber.Ctx) error {
 		)
 	}
 
-	notifications, total, err := h.service.GetAll(query)
+	notifications, total, err := h.service.GetAll(query, userID)
 	if err != nil {
 		return helper.Error(
 			c,
@@ -105,9 +130,18 @@ func (h *NotificationHandler) GetAll(c *fiber.Ctx) error {
 }
 
 func (h *NotificationHandler) Get(c *fiber.Ctx) error {
+	userID, ok := c.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return helper.Error(
+			c,
+			http.StatusUnauthorized,
+			"Unauthorized",
+			nil,
+		)
+	}
 	id := c.Params("id")
 
-	result, err := h.service.Get(id)
+	result, err := h.service.Get(id, userID)
 	if err != nil {
 		return helper.Error(
 			c,
@@ -135,6 +169,16 @@ func (h *NotificationHandler) Get(c *fiber.Ctx) error {
 }
 
 func (h *NotificationHandler) Update(c *fiber.Ctx) error {
+	userID, ok := c.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return helper.Error(
+			c,
+			http.StatusUnauthorized,
+			"Unauthorized",
+			nil,
+		)
+	}
+
 	var req dto.CreateNotificationRequest
 
 	if err := c.BodyParser(&req); err != nil {
@@ -148,7 +192,11 @@ func (h *NotificationHandler) Update(c *fiber.Ctx) error {
 
 	id := c.Params("id")
 
-	result, err := h.service.Update(req, id)
+	result, err := h.service.Update(
+		req,
+		id,
+		userID,
+	)
 	if err != nil {
 		return helper.Error(
 			c,
@@ -167,9 +215,19 @@ func (h *NotificationHandler) Update(c *fiber.Ctx) error {
 }
 
 func (h *NotificationHandler) Delete(c *fiber.Ctx) error {
+	userID, ok := c.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return helper.Error(
+			c,
+			http.StatusUnauthorized,
+			"Unauthorized",
+			nil,
+		)
+	}
+
 	id := c.Params("id")
 
-	err := h.service.Delete(id)
+	err := h.service.Delete(id, userID)
 	if err != nil {
 		return helper.Error(
 			c,

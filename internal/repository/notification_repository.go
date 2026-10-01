@@ -45,7 +45,9 @@ func (r *notificationRepository) GetAll(
 	params GetNotificationsParams,
 ) ([]model.Notification, int64, error) {
 
-	filter := bson.M{}
+	filter := bson.M{
+		"user_id": params.UserID,
+	}
 
 	if params.Terms != "" {
 		filter = bson.M{
@@ -94,13 +96,17 @@ func (r *notificationRepository) GetAll(
 func (r *notificationRepository) GetById(
 	ctx context.Context,
 	id string,
+	userID string,
 ) (*model.Notification, error) {
 	objectID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, fmt.Errorf("invalid notification ID: %v", err)
 	}
 
-	filter := bson.M{"_id": objectID}
+	filter := bson.M{
+		"_id":     objectID,
+		"user_id": userID,
+	}
 
 	var notification model.Notification
 
@@ -119,6 +125,7 @@ func (r *notificationRepository) Update(
 	ctx context.Context,
 	id string,
 	notification *model.Notification,
+	userID string,
 ) (*model.Notification, error) {
 
 	objectID, err := bson.ObjectIDFromHex(id)
@@ -127,7 +134,8 @@ func (r *notificationRepository) Update(
 	}
 
 	filter := bson.M{
-		"_id": objectID,
+		"_id":     objectID,
+		"user_id": userID,
 	}
 
 	update := bson.M{
@@ -161,6 +169,7 @@ func (r *notificationRepository) Update(
 func (r *notificationRepository) Delete(
 	ctx context.Context,
 	id string,
+	userID string,
 ) error {
 
 	objectID, err := bson.ObjectIDFromHex(id)
@@ -169,7 +178,8 @@ func (r *notificationRepository) Delete(
 	}
 
 	result, err := r.collection.DeleteOne(ctx, bson.M{
-		"_id": objectID,
+		"_id":     objectID,
+		"user_id": userID,
 	})
 	if err != nil {
 		return err
