@@ -2,8 +2,10 @@ package service
 
 import (
 	"context"
+	"errors"
 	"time"
 
+	"go-notification/internal/apperror"
 	"go-notification/internal/dto"
 	"go-notification/internal/model"
 	"go-notification/internal/repository"
@@ -102,6 +104,14 @@ func (s *notificationService) Get(
 	)
 
 	if err != nil {
+		if errors.Is(err, apperror.ErrNotificationNotFound) {
+			return nil, apperror.ErrNotificationNotFound
+		}
+
+		if errors.Is(err, apperror.ErrInvalidID) {
+			return nil, apperror.ErrInvalidID
+		}
+
 		return nil, err
 	}
 
@@ -136,6 +146,14 @@ func (s *notificationService) Update(
 	)
 
 	if err != nil {
+		if errors.Is(err, apperror.ErrNotificationNotFound) {
+			return nil, apperror.ErrNotificationNotFound
+		}
+
+		if errors.Is(err, apperror.ErrInvalidID) {
+			return nil, apperror.ErrInvalidID
+		}
+
 		return nil, err
 	}
 
@@ -161,6 +179,14 @@ func (s *notificationService) Delete(
 	)
 
 	if err != nil {
+		if errors.Is(err, apperror.ErrNotificationNotFound) {
+			return apperror.ErrNotificationNotFound
+		}
+
+		if errors.Is(err, apperror.ErrInvalidID) {
+			return apperror.ErrInvalidID
+		}
+
 		return err
 	}
 

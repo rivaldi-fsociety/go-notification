@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 	"errors"
-	"fmt"
+	"go-notification/internal/apperror"
 	"go-notification/internal/dto"
 	"go-notification/internal/helper"
 	"go-notification/internal/model"
@@ -33,24 +33,23 @@ func NewUserService(
 }
 
 func (s *userService) Register(
+	ctx context.Context,
 	req dto.RegisterUserRequest,
 ) (*dto.UserResponse, error) {
 
 	email := strings.ToLower(strings.TrimSpace(req.Email))
 
 	existingUser, err := s.repository.FindByEmail(
-		context.Background(),
+		ctx,
 		email,
 	)
 
 	if err != nil {
-		if !errors.Is(err, repository.ErrUserNotFound) {
-			return nil, err
-		}
+		return nil, err
 	}
 
 	if existingUser != nil {
-		return nil, fmt.Errorf("email already registered")
+		return nil, apperror.ErrEmailAlreadyExists
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword(
@@ -90,18 +89,19 @@ func (s *userService) Register(
 }
 
 func (s *userService) Login(
+	ctx context.Context,
 	req dto.LoginUserRequest,
 ) (*dto.LoginResponse, error) {
 
 	email := strings.ToLower(strings.TrimSpace(req.Email))
 
 	user, err := s.repository.FindByEmail(
-		context.Background(),
+		ctx,
 		email,
 	)
 	if err != nil {
-		if errors.Is(err, repository.ErrUserNotFound) {
-			return nil, fmt.Errorf("invalid email or password")
+		if errors.Is(err, apperror.ErrUserNotFound) {
+			return nil, apperror.ErrInvalidCredentials
 		}
 
 		return nil, err
@@ -112,7 +112,7 @@ func (s *userService) Login(
 		[]byte(req.Password),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("invalid email or password")
+		return nil, apperror.ErrInvalidCredentials
 	}
 
 	token, err := helper.GenerateJWT(

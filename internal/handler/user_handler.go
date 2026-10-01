@@ -27,6 +27,7 @@ func NewUserHandler(
 }
 
 func (h *UserHandler) Register(c *fiber.Ctx) error {
+	ctx := c.UserContext()
 	var req dto.RegisterUserRequest
 
 	if err := c.BodyParser(&req); err != nil {
@@ -47,7 +48,7 @@ func (h *UserHandler) Register(c *fiber.Ctx) error {
 		)
 	}
 
-	user, err := h.service.Register(req)
+	user, err := h.service.Register(ctx, req)
 	if err != nil {
 		return helper.Error(
 			c,
@@ -66,6 +67,7 @@ func (h *UserHandler) Register(c *fiber.Ctx) error {
 }
 
 func (h *UserHandler) Login(c *fiber.Ctx) error {
+	ctx := c.UserContext()
 	var req dto.LoginUserRequest
 
 	// Parse request body
@@ -89,14 +91,9 @@ func (h *UserHandler) Login(c *fiber.Ctx) error {
 	}
 
 	// Login
-	result, err := h.service.Login(req)
+	result, err := h.service.Login(ctx, req)
 	if err != nil {
-		return helper.Error(
-			c,
-			http.StatusUnauthorized,
-			err.Error(),
-			nil,
-		)
+		return handleError(c, err)
 	}
 
 	return helper.Success(

@@ -4,14 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"go-notification/internal/apperror"
 	"go-notification/internal/model"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
-
-var ErrUserNotFound = errors.New("user not found")
 
 type userRepository struct {
 	collection *mongo.Collection
@@ -134,7 +133,7 @@ func (r *userRepository) GetById(
 	err = r.collection.FindOne(ctx, filter).Decode(&user)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, fmt.Errorf("user not found")
+			return nil, apperror.ErrUserNotFound
 		}
 		return nil, err
 	}
@@ -156,7 +155,7 @@ func (r *userRepository) FindByEmail(
 	err := r.collection.FindOne(ctx, filter).Decode(&user)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, ErrUserNotFound
+			return nil, apperror.ErrUserNotFound
 		}
 
 		return nil, err

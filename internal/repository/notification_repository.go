@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"go-notification/internal/apperror"
 	"go-notification/internal/model"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -100,7 +101,7 @@ func (r *notificationRepository) GetById(
 ) (*model.Notification, error) {
 	objectID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return nil, fmt.Errorf("invalid notification ID: %v", err)
+		return nil, apperror.ErrInvalidID
 	}
 
 	filter := bson.M{
@@ -113,7 +114,7 @@ func (r *notificationRepository) GetById(
 	err = r.collection.FindOne(ctx, filter).Decode(&notification)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, fmt.Errorf("notification not found")
+			return nil, apperror.ErrNotificationNotFound
 		}
 		return nil, err
 	}
@@ -130,7 +131,7 @@ func (r *notificationRepository) Update(
 
 	objectID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return nil, fmt.Errorf("invalid notification id")
+		return nil, apperror.ErrInvalidID
 	}
 
 	filter := bson.M{
@@ -157,7 +158,7 @@ func (r *notificationRepository) Update(
 
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, fmt.Errorf("notification not found")
+			return nil, apperror.ErrNotificationNotFound
 		}
 
 		return nil, err
@@ -174,7 +175,7 @@ func (r *notificationRepository) Delete(
 
 	objectID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return fmt.Errorf("invalid notification id")
+		return apperror.ErrInvalidID
 	}
 
 	result, err := r.collection.DeleteOne(ctx, bson.M{
@@ -186,7 +187,7 @@ func (r *notificationRepository) Delete(
 	}
 
 	if result.DeletedCount == 0 {
-		return fmt.Errorf("notification not found")
+		return apperror.ErrNotificationNotFound
 	}
 
 	return nil

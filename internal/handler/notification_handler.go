@@ -147,21 +147,7 @@ func (h *NotificationHandler) Get(c *fiber.Ctx) error {
 
 	result, err := h.service.Get(ctx, id, userID)
 	if err != nil {
-		return helper.Error(
-			c,
-			fiber.StatusInternalServerError,
-			"failed to get notification",
-			nil,
-		)
-	}
-
-	if result == nil {
-		return helper.Error(
-			c,
-			fiber.StatusNotFound,
-			"notification not found",
-			nil,
-		)
+		return handleError(c, err)
 	}
 
 	return helper.Success(
@@ -204,12 +190,7 @@ func (h *NotificationHandler) Update(c *fiber.Ctx) error {
 		userID,
 	)
 	if err != nil {
-		return helper.Error(
-			c,
-			fiber.StatusInternalServerError,
-			"failed to update notification",
-			nil,
-		)
+		return handleError(c, err)
 	}
 
 	return helper.Success(
@@ -236,12 +217,7 @@ func (h *NotificationHandler) Delete(c *fiber.Ctx) error {
 
 	err := h.service.Delete(ctx, id, userID)
 	if err != nil {
-		return helper.Error(
-			c,
-			fiber.StatusInternalServerError,
-			err.Error(),
-			nil,
-		)
+		return handleError(c, err)
 	}
 
 	return helper.Success(
