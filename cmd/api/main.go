@@ -3,6 +3,10 @@ package main
 import (
 	"context"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"go-notification/internal/config"
 	"go-notification/internal/database"
@@ -80,8 +84,33 @@ func main() {
 		cfg.RequestTimeout,
 	)
 
+	shutdownCtx, stop := signal.NotifyContext(
+		context.Background(),
+		os.Interrupt,
+		syscall.SIGTERM,
+	)
+	defer stop()
+
 	// Server
-	if err := app.Listen(":" + cfg.AppPort); err != nil {
-		log.Fatal(err)
+	go func() {
+		if err := app.Listen(":" + cfg.AppPort); err != nil {
+			log.Printf("server stopped: %v", err)
+		}
+	}()
+
+	<-shutdownCtx.Done()
+
+	log.Println("shutdown signal received")
+
+	shutdownTimeoutCtx, cancel := context.WithTimeout(
+		context.Background(),
+		10*time.Second,
+	)
+	defer cancel()
+
+	if err := app.ShutdownWithContext(shutdownTimeoutCtx); err != nil {
+		log.Printf("failed to shutdown server: %v", err)
+	} else {
+		log.Println("server shutdown complete")
 	}
 }
