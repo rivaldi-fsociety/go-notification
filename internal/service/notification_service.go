@@ -2,10 +2,12 @@ package service
 
 import (
 	"context"
-	"errors"
+	"encoding/json"
+	"fmt"
+	"log"
 	"time"
 
-	"go-notification/internal/apperror"
+	"go-notification/internal/cache"
 	"go-notification/internal/dto"
 	"go-notification/internal/model"
 	"go-notification/internal/repository"
@@ -13,13 +15,16 @@ import (
 
 type notificationService struct {
 	repository repository.NotificationRepository
+	cache      cache.Cache
 }
 
 func NewNotificationService(
 	repository repository.NotificationRepository,
+	cache cache.Cache,
 ) NotificationService {
 	return &notificationService{
 		repository: repository,
+		cache:      cache,
 	}
 }
 
@@ -97,31 +102,49 @@ func (s *notificationService) Get(
 	userID string,
 ) (*dto.NotificationResponse, error) {
 
-	notification, err := s.repository.GetById(
-		ctx,
-		id,
-		userID,
-	)
+	cacheKey := fmt.Sprintf("notification:%s:%s", userID, id)
 
+	cached, err := s.cache.Get(ctx, cacheKey)
 	if err != nil {
-		if errors.Is(err, apperror.ErrNotificationNotFound) {
-			return nil, apperror.ErrNotificationNotFound
-		}
+		log.Printf("failed to get notification from cache: %v", err)
+	} else if cached != "" {
+		var response dto.NotificationResponse
 
-		if errors.Is(err, apperror.ErrInvalidID) {
-			return nil, apperror.ErrInvalidID
+		if err := json.Unmarshal([]byte(cached), &response); err != nil {
+			log.Printf("failed to unmarshal cached notification: %v", err)
+		} else {
+			return &response, nil
 		}
+	}
 
+	notification, err := s.repository.GetById(ctx, id, userID)
+	if err != nil {
 		return nil, err
 	}
 
-	return &dto.NotificationResponse{
+	response := dto.NotificationResponse{
 		ID:        notification.ID.Hex(),
 		UserID:    notification.UserID,
 		Title:     notification.Title,
 		Message:   notification.Message,
 		CreatedAt: notification.CreatedAt,
-	}, nil
+	}
+
+	data, err := json.Marshal(response)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := s.cache.Set(
+		ctx,
+		cacheKey,
+		string(data),
+		5*time.Minute,
+	); err != nil {
+		log.Printf("failed to cache notification: %v", err)
+	}
+
+	return &response, nil
 }
 
 func (s *notificationService) Update(
@@ -132,10 +155,8 @@ func (s *notificationService) Update(
 ) (*dto.NotificationResponse, error) {
 
 	notification := &model.Notification{
-		UserID:    userID,
-		Title:     req.Title,
-		Message:   req.Message,
-		UpdatedAt: time.Now(),
+		Title:   req.Title,
+		Message: req.Message,
 	}
 
 	updatedNotification, err := s.repository.Update(
@@ -144,50 +165,42 @@ func (s *notificationService) Update(
 		notification,
 		userID,
 	)
-
 	if err != nil {
-		if errors.Is(err, apperror.ErrNotificationNotFound) {
-			return nil, apperror.ErrNotificationNotFound
-		}
-
-		if errors.Is(err, apperror.ErrInvalidID) {
-			return nil, apperror.ErrInvalidID
-		}
-
 		return nil, err
 	}
 
-	return &dto.NotificationResponse{
+	cacheKey := fmt.Sprintf("notification:%s:%s", userID, id)
+
+	if err := s.cache.Delete(ctx, cacheKey); err != nil {
+		log.Printf("failed to invalidate notification cache: %v", err)
+	}
+
+	response := dto.NotificationResponse{
 		ID:        updatedNotification.ID.Hex(),
 		UserID:    updatedNotification.UserID,
 		Title:     updatedNotification.Title,
 		Message:   updatedNotification.Message,
 		CreatedAt: updatedNotification.CreatedAt,
-		UpdatedAt: updatedNotification.UpdatedAt,
-	}, nil
+	}
+
+	return &response, nil
 }
 
 func (s *notificationService) Delete(
 	ctx context.Context,
-	id string,
 	userID string,
+	id string,
 ) error {
-	err := s.repository.Delete(
-		ctx,
-		id,
-		userID,
-	)
 
+	err := s.repository.Delete(ctx, id, userID)
 	if err != nil {
-		if errors.Is(err, apperror.ErrNotificationNotFound) {
-			return apperror.ErrNotificationNotFound
-		}
-
-		if errors.Is(err, apperror.ErrInvalidID) {
-			return apperror.ErrInvalidID
-		}
-
 		return err
+	}
+
+	cacheKey := fmt.Sprintf("notification:%s:%s", userID, id)
+
+	if err := s.cache.Delete(ctx, cacheKey); err != nil {
+		log.Printf("failed to invalidate notification cache: %v", err)
 	}
 
 	return nil

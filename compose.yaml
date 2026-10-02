@@ -8,6 +8,7 @@ services:
       - .env
     environment:
       MONGO_URI: mongodb://mongo:27017
+      REDIS_ADDR: redis:6379
     depends_on:
       - mongo
 
@@ -15,6 +16,9 @@ services:
     image: mongo:7
     volumes:
       - mongo_data:/data/lib
+
+  redis:
+    image: redis:7
 
 volumes:
   mongo_data:

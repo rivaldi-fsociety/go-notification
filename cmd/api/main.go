@@ -8,6 +8,7 @@ import (
 	"syscall"
 	"time"
 
+	"go-notification/internal/cache"
 	"go-notification/internal/config"
 	"go-notification/internal/database"
 	"go-notification/internal/handler"
@@ -48,6 +49,22 @@ func main() {
 
 	db := mongoClient.Database(cfg.MongoDatabase)
 
+	// Redis
+	redisClient, err := database.ConnectRedis(cfg.RedisAddr)
+	if err != nil {
+		log.Fatalf("failed to connect to redis: %v", err)
+	}
+
+	defer func() {
+		if err := redisClient.Close(); err != nil {
+			log.Printf("failed to close redis: %v", err)
+		}
+	}()
+
+	log.Println("redis connected successfully")
+
+	notificationCache := cache.NewRedisCache(redisClient)
+
 	// Repositories
 	notificationRepository := repository.NewNotificationRepository(db)
 	userRepository := repository.NewUserRepository(db)
@@ -60,6 +77,7 @@ func main() {
 	// Services
 	notificationService := service.NewNotificationService(
 		notificationRepository,
+		notificationCache,
 	)
 
 	userService := service.NewUserService(

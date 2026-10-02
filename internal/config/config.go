@@ -15,6 +15,7 @@ type Config struct {
 	JWTSecret      string
 	JWTExpiresIn   time.Duration
 	RequestTimeout time.Duration
+	RedisAddr      string
 }
 
 func Load() (*Config, error) {
@@ -44,6 +45,7 @@ func Load() (*Config, error) {
 		JWTSecret:      os.Getenv("JWT_SECRET"),
 		JWTExpiresIn:   jwtExpiresIn,
 		RequestTimeout: requestTimeout,
+		RedisAddr:      os.Getenv("REDIS_ADDR"),
 	}
 
 	if config.JWTSecret == "" {

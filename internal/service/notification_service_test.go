@@ -12,6 +12,34 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
+type fakeCache struct {
+	value string
+	err   error
+}
+
+func (f *fakeCache) Get(
+	ctx context.Context,
+	key string,
+) (string, error) {
+	return f.value, f.err
+}
+
+func (f *fakeCache) Set(
+	ctx context.Context,
+	key string,
+	value string,
+	expiration time.Duration,
+) error {
+	return f.err
+}
+
+func (f *fakeCache) Delete(
+	ctx context.Context,
+	key string,
+) error {
+	return f.err
+}
+
 type fakeNotificationRepository struct {
 	notification *model.Notification
 	err          error
@@ -124,8 +152,9 @@ func TestNotificationService_Get(t *testing.T) {
 				notification: tt.repoNotification,
 				err:          tt.repoErr,
 			}
+			cache := &fakeCache{}
 
-			notificationService := NewNotificationService(fakeRepo)
+			notificationService := NewNotificationService(fakeRepo, cache)
 
 			// Act
 			result, err := notificationService.Get(
