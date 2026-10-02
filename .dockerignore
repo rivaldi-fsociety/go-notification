@@ -1,0 +1,5 @@
+.env
+.git
+api
+.vscode
+.DS_Store
